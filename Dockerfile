@@ -10,6 +10,7 @@ COPY --from=builder /app/target/*.jar app.jar
 
 # Render define a porta via $PORT
 EXPOSE ${PORT}
+ENV SERVER_PORT=${PORT}
 
 ENV SERVER_PORT=${PORT}
 ENV SPRING_APPLICATION_NAME=voting-system-api-gateway
