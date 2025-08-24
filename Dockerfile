@@ -15,7 +15,7 @@ EXPOSE 8080
 ENV SPRING_APPLICATION_NAME=voting-system-api-gateway
 ENV EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
 ENV EUREKA_CLIENT_FETCH_REGISTRY=true
-ENV EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=https://voting-system-discovery.onrender.com/eureka
+ENV EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=https://voting-system-discovery.onrender.com
 ENV EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
