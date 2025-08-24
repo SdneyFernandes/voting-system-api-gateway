@@ -23,4 +23,3 @@ eureka:
   instance:
     appname: voting-system-api-gateway
     preferIpAddress: true
-    non-secure-port: ${PORT:8080}

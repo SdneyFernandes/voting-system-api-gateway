@@ -8,8 +8,10 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
-# Render define a porta via $PORT
-ENV PORT=${PORT}
+
+EXPOSE 8080
+
+ENV SERVER_PORT=8080
 ENV SPRING_APPLICATION_NAME=voting-system-api-gateway
 ENV EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
 ENV EUREKA_CLIENT_FETCH_REGISTRY=true
