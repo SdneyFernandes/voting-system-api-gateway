@@ -17,8 +17,7 @@ spring:
 
 eureka:
   client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:https://voting-system-discovery.onrender.com/eureka/}
+    enabled: false   # <<< DESATIVADO para produção no Render
   instance:
     appname: voting-system-api-gateway
     preferIpAddress: true
