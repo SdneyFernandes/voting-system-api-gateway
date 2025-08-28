@@ -12,20 +12,30 @@ public class GatewayConfig {
     @Bean
     public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Rotas PÚBLICAS (sem filtro)
+                // Rotas PÚBLICAS (com CORS)
                 .route("user-service-public", r -> r.path(
                         "/api/users/register", 
                         "/api/users/login",
                         "/api/users/logout"
-                    ).uri("https://voting-system-user-service.onrender.com"))
+                    )
+                    .filters(f -> f.cors(cors -> {
+                        cors.configuration(corsConfig());
+                    }))
+                    .uri("https://voting-system-user-service.onrender.com"))
                 
-                // Rotas PRIVADAS (com filtro)
+                // Rotas PRIVADAS (com filtro + CORS)
                 .route("user-service-secured", r -> r.path("/api/users/**")
-                        .filters(f -> f.filter(cookieAuthenticationFilter()))
+                        .filters(f -> f.filter(cookieAuthenticationFilter())
+                            .cors(cors -> {
+                                cors.configuration(corsConfig());
+                            }))
                         .uri("https://voting-system-user-service.onrender.com"))
                 
                 .route("vote-service", r -> r.path("/api/votes/**", "/api/votes_session/**")
-                        .filters(f -> f.filter(cookieAuthenticationFilter()))
+                        .filters(f -> f.filter(cookieAuthenticationFilter())
+                            .cors(cors -> {
+                                cors.configuration(corsConfig());
+                            }))
                         .uri("https://voting-system-vote-service.onrender.com"))
                 .build();
     }
