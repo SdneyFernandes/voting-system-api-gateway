@@ -11,46 +11,45 @@ import java.util.Optional;
 public class CookieAuthenticationFilter implements GatewayFilter {
 
     @Override
-public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-    ServerHttpRequest request = exchange.getRequest();
-    String path = request.getURI().getPath();
-    String method = request.getMethod().name();
-    
-    // 🔍 LOG DE DEBUG MELHORADO
-    System.out.println("🔍 [GATEWAY DEBUG] Processing: " + method + " " + path);
-    System.out.println("🍪 [GATEWAY DEBUG] All Cookies: " + request.getCookies());
-    
-    // Log detalhado de cada cookie
-    request.getCookies().forEach((name, cookies) -> {
-        cookies.forEach(cookie -> {
-            System.out.println("📦 Cookie: " + name + "=" + cookie.getValue() + 
-                             ", Domain: " + cookie.getDomain() +
-                             ", Path: " + cookie.getPath() +
-                             ", Secure: " + cookie.isSecure());
-        });
-    });
-    
-    Optional<String> userId = getCookieValue(request, "userId");
-    Optional<String> role = getCookieValue(request, "role");
-
-    System.out.println("✅ [GATEWAY DEBUG] userId cookie: " + userId.orElse("NOT_FOUND"));
-    System.out.println("✅ [GATEWAY DEBUG] role cookie: " + role.orElse("NOT_FOUND"));
-
-    if (userId.isPresent() && role.isPresent()) {
-        System.out.println("🎯 [GATEWAY DEBUG] Adding headers X-User-Id and X-User-Role");
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+        String method = request.getMethod().name();
         
-        ServerHttpRequest mutatedRequest = request.mutate()
-                .header("X-User-Id", userId.get())
-                .header("X-User-Role", role.get())
-                .build();
+        // 🔍 LOG DE DEBUG MELHORADO
+        System.out.println("🔍 [GATEWAY DEBUG] Processing: " + method + " " + path);
+        System.out.println("🍪 [GATEWAY DEBUG] All Cookies: " + request.getCookies());
+        
+        // Log simplificado de cada cookie (sem métodos obsoletos)
+        request.getCookies().forEach((name, cookies) -> {
+            cookies.forEach(cookie -> {
+                System.out.println("📦 Cookie: " + name + "=" + cookie.getValue());
+                // Removidas as chamadas aos métodos obsoletos:
+                // getDomain(), getPath(), isSecure()
+            });
+        });
+        
+        Optional<String> userId = getCookieValue(request, "userId");
+        Optional<String> role = getCookieValue(request, "role");
 
-        ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
-        return chain.filter(mutatedExchange);
+        System.out.println("✅ [GATEWAY DEBUG] userId cookie: " + userId.orElse("NOT_FOUND"));
+        System.out.println("✅ [GATEWAY DEBUG] role cookie: " + role.orElse("NOT_FOUND"));
+
+        if (userId.isPresent() && role.isPresent()) {
+            System.out.println("🎯 [GATEWAY DEBUG] Adding headers X-User-Id and X-User-Role");
+            
+            ServerHttpRequest mutatedRequest = request.mutate()
+                    .header("X-User-Id", userId.get())
+                    .header("X-User-Role", role.get())
+                    .build();
+
+            ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+            return chain.filter(mutatedExchange);
+        }
+
+        System.out.println("⚠️ [GATEWAY DEBUG] No auth cookies found, proceeding without authentication");
+        return chain.filter(exchange);
     }
-
-    System.out.println("⚠️ [GATEWAY DEBUG] No auth cookies found, proceeding without authentication");
-    return chain.filter(exchange);
-}
 
     private Optional<String> getCookieValue(ServerHttpRequest request, String cookieName) {
         HttpCookie cookie = request.getCookies().getFirst(cookieName);
