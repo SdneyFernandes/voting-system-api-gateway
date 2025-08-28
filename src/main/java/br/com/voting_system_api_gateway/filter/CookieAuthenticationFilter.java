@@ -39,12 +39,16 @@ public class CookieAuthenticationFilter implements GatewayFilter {
         Optional<String> role = getCookieValue(request, "role");
 
         if (userId.isPresent() && role.isPresent()) {
-            System.out.println("🎯 [GATEWAY DEBUG] Adding headers X-User-Id and X-User-Role");
+            System.out.println("🎯 [GATEWAY DEBUG] Cookies found -> userId=" + userId.get() + ", role=" + role.get());
 
+            // Propaga exatamente o que veio do cookie
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", userId.get())
-                    .header("X-User-Role", role.get())
+                    .header("X-User-Role", role.get()) // sem prefixo ROLE_
                     .build();
+
+            System.out.println("📨 [GATEWAY DEBUG] Forwarding with headers X-User-Id=" 
+                    + userId.get() + ", X-User-Role=" + role.get());
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
         }
