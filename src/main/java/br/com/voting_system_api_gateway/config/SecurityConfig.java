@@ -14,7 +14,7 @@ public class SecurityConfig {
             .csrf(ServerHttpSecurity.CsrfSpec::disable) // CSRF não faz sentido em API Gateway
             .cors(cors -> {}) // 🔑 Habilita o CORS antes do resto
             .authorizeExchange(exchange -> exchange
-                .pathMatchers("/api/auth/**").permitAll() // login/registro liberados
+                .pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info" ).permitAll() // login/registro liberados
                 .anyExchange().authenticated() // o resto exige auth
             );
 
