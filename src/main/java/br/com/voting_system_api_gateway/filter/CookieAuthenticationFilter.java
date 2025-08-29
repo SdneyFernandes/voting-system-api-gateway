@@ -13,7 +13,6 @@ import java.util.Optional;
 
 public class CookieAuthenticationFilter implements GatewayFilter {
 
-    // Rotas públicas que não exigem autenticação
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/users/register",
             "/api/users/login",
@@ -22,45 +21,43 @@ public class CookieAuthenticationFilter implements GatewayFilter {
     );
 
     @Override
-public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-    ServerHttpRequest request = exchange.getRequest();
-    String path = request.getURI().getPath();
-    String method = request.getMethod().name();
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+        String method = request.getMethod().name();
 
-    // 🔹 IMPORTANTE: liberar OPTIONS sempre (preflight CORS)
-    if ("OPTIONS".equalsIgnoreCase(method)) {
-        return chain.filter(exchange);
+        System.out.println("🔍 [GATEWAY DEBUG] Processing: " + method + " " + path);
+
+        if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
+            System.out.println("✅ [GATEWAY DEBUG] Public route, skipping auth check");
+            return chain.filter(exchange);
+        }
+
+        Optional<String> userId = getCookieValue(request, "userId");
+        Optional<String> role = getCookieValue(request, "role");
+
+        if (userId.isPresent() && role.isPresent()) {
+            String prefixedRole = role.get().startsWith("ROLE_") ? role.get() : "ROLE_" + role.get();
+
+            System.out.println("🎯 [GATEWAY DEBUG] Cookies found -> userId=" + userId.get() + ", role=" + role.get());
+            System.out.println("📨 [GATEWAY DEBUG] Forwarding with headers X-User-Id=" 
+                    + userId.get() + ", X-User-Role=" + prefixedRole);
+
+            ServerHttpRequest mutatedRequest = request.mutate()
+                    .header("X-User-Id", userId.get())
+                    .header("X-User-Role", prefixedRole)
+                    .build();
+
+            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        }
+
+        System.out.println("⛔ [GATEWAY DEBUG] Missing auth cookies, blocking request");
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return exchange.getResponse().setComplete();
     }
-
-    System.out.println("🔍 [GATEWAY DEBUG] Processing: " + method + " " + path);
-
-    if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
-        System.out.println("✅ [GATEWAY DEBUG] Public route, skipping auth check");
-        return chain.filter(exchange);
-    }
-
-    Optional<String> userId = getCookieValue(request, "userId");
-    Optional<String> role = getCookieValue(request, "role");
-
-    if (userId.isPresent() && role.isPresent()) {
-        ServerHttpRequest mutatedRequest = request.mutate()
-                .header("X-User-Id", userId.get())
-                .header("X-User-Role", role.get())
-                .build();
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
-    }
-
-    System.out.println("⛔ [GATEWAY DEBUG] Missing auth cookies, blocking request");
-    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-    return exchange.getResponse().setComplete();
-}
-
 
     private Optional<String> getCookieValue(ServerHttpRequest request, String cookieName) {
         HttpCookie cookie = request.getCookies().getFirst(cookieName);
-        if (cookie != null) {
-            return Optional.of(cookie.getValue());
-        }
-        return Optional.empty();
+        return cookie != null ? Optional.of(cookie.getValue()) : Optional.empty();
     }
 }

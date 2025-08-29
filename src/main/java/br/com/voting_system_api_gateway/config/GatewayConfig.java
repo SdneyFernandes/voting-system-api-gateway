@@ -12,15 +12,14 @@ public class GatewayConfig {
     @Bean
     public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Rotas PÚBLICAS
+                // Rotas PÚBLICAS (sem filtro)
                 .route("user-service-public", r -> r.path(
                         "/api/users/register", 
                         "/api/users/login",
                         "/api/users/logout"
-                    )
-                    .uri("https://voting-system-user-service.onrender.com"))
+                    ).uri("https://voting-system-user-service.onrender.com"))
                 
-                // Rotas PRIVADAS (com filtro de autenticação)
+                // Rotas PRIVADAS (com filtro)
                 .route("user-service-secured", r -> r.path("/api/users/**")
                         .filters(f -> f.filter(cookieAuthenticationFilter()))
                         .uri("https://voting-system-user-service.onrender.com"))
