@@ -19,13 +19,12 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
-            allowedHeaders:
-              - Authorization
-              - Content-Type
-              - X-Requested-With
-              - X-User-Id
-              - X-User-Role
+            allowedHeaders:   # aceitar todos os headers do browser (inclui Cookie, Origin, Accept etc.)
+              - "*"
+            exposedHeaders:   # expor todos para o frontend se precisar ler no JS
+              - "*"
             allowCredentials: true
+
 eureka:
   client:
     enabled: false   # <<< DESATIVADO para produção no Render

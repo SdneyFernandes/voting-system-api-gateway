@@ -1,8 +1,9 @@
-package br.com.voting_system_api_gateway.filter;
+package br.com.voting_system_api_gateway.config;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -13,7 +14,7 @@ import java.util.Optional;
 
 public class CookieAuthenticationFilter implements GatewayFilter {
 
-    // Rotas públicas que não exigem autenticação
+    // Rotas públicas
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/users/register",
             "/api/users/login",
@@ -29,7 +30,14 @@ public class CookieAuthenticationFilter implements GatewayFilter {
 
         System.out.println("🔍 [GATEWAY DEBUG] Processing: " + method + " " + path);
 
-        // Se for rota pública, não exige autenticação
+        // ✅ Permite preflight CORS
+        if (HttpMethod.OPTIONS.matches(method)) {
+            System.out.println("✅ [GATEWAY DEBUG] Preflight liberado");
+            exchange.getResponse().setStatusCode(HttpStatus.OK);
+            return exchange.getResponse().setComplete();
+        }
+
+        // Se for rota pública, pula autenticação
         if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
             System.out.println("✅ [GATEWAY DEBUG] Public route, skipping auth check");
             return chain.filter(exchange);
@@ -41,19 +49,16 @@ public class CookieAuthenticationFilter implements GatewayFilter {
         if (userId.isPresent() && role.isPresent()) {
             System.out.println("🎯 [GATEWAY DEBUG] Cookies found -> userId=" + userId.get() + ", role=" + role.get());
 
-            // Propaga exatamente o que veio do cookie
+            // Encaminha cookies como headers
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", userId.get())
-                    .header("X-User-Role", role.get()) // sem prefixo ROLE_
+                    .header("X-User-Role", role.get())
                     .build();
-
-            System.out.println("📨 [GATEWAY DEBUG] Forwarding with headers X-User-Id=" 
-                    + userId.get() + ", X-User-Role=" + role.get());
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
         }
 
-        // Se não tem cookies e a rota não é pública → bloqueia
+        // Falta de cookies em rota privada → bloqueia
         System.out.println("⛔ [GATEWAY DEBUG] Missing auth cookies, blocking request");
         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
         return exchange.getResponse().setComplete();
