@@ -10,11 +10,22 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "http://localhost:3000,https://voting-frontend-blpn.onrender.com"
-            allowedMethods: "*"
-            allowedHeaders: "*"
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "https://voting-frontend-blpn.onrender.com"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - X-User-Id
+              - X-User-Role
             allowCredentials: true
-
 eureka:
   client:
     enabled: false   # <<< DESATIVADO para produção no Render
