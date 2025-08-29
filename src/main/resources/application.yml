@@ -19,9 +19,13 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
-            allowedHeaders: "*"
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - X-User-Id
+              - X-User-Role
             allowCredentials: true
-
 eureka:
   client:
     enabled: false   # <<< DESATIVADO para produção no Render
