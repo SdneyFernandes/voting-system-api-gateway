@@ -11,13 +11,17 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable) // CSRF não faz sentido em API Gateway
-            .cors(cors -> {}) // 🔑 Habilita o CORS antes do resto
-            .authorizeExchange(exchange -> exchange
-                .pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info" ).permitAll() // login/registro liberados
-                .anyExchange().authenticated() // o resto exige auth
-            );
+            .csrf(ServerHttpSecurity.CsrfSpec::disable) // desativa CSRF
+            .cors(cors -> {}) // habilita CORS
+            .authorizeExchange(exchanges -> exchanges
+                // libera login e endpoints de health/info
+                .pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
+                // qualquer outro endpoint exige autenticação
+                .anyExchange().authenticated()
+            )
+            .httpBasic(); // habilita HTTP Basic para teste
 
         return http.build();
     }
 }
+
