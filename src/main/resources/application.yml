@@ -5,27 +5,6 @@ spring:
   application:
     name: voting-system-api-gateway
 
-  spring:
-  cloud:
-    gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "http://localhost:3000"
-              - "https://voting-frontend-blpn.onrender.com"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            exposedHeaders:
-              - "*"
-            allowCredentials: true
-
-
 eureka:
   client:
     enabled: false   # <<< DESATIVADO para produção no Render
