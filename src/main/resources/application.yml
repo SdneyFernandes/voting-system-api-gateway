@@ -1,28 +1,32 @@
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8080}   # Render injeta PORT automaticamente
 
 spring:
   application:
     name: voting-system-api-gateway
+
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: false  # Desativa descoberta do Eureka
       globalcors:
-        add-to-simple-url-handler-mapping: true  # Importante para CORS
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000,https://voting-frontend-blpn.onrender.com"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
 
 eureka:
   client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+    enabled: false   # <<< DESATIVADO para produção no Render
+  instance:
+    appname: voting-system-api-gateway
+    preferIpAddress: true
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
-  health:
-    probes:
-      enabled: false
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
