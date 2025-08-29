@@ -1,4 +1,4 @@
-package br.com.voting_system_api_gateway.config;
+package br.com.voting_system_api_gateway.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
