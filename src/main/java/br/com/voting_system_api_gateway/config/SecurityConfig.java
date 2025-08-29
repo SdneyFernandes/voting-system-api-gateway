@@ -11,16 +11,13 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable) // desativa CSRF
-            .cors(cors -> {}) // habilita CORS
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .cors(cors -> {})
             .authorizeExchange(exchanges -> exchanges
-                // libera login e endpoints de health/info
                 .pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
-                // qualquer outro endpoint exige autenticação
                 .anyExchange().authenticated()
             )
-            .httpBasic(); // habilita HTTP Basic para teste
-
+            .httpBasic();
         return http.build();
     }
 }
