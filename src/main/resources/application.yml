@@ -10,9 +10,7 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "https://voting-frontend-blpn.onrender.com"
+            allowedOrigins: ${ALLOWED_ORIGINS_LIST}
             allowedMethods:
               - GET
               - POST
