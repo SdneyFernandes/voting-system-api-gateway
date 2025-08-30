@@ -7,23 +7,7 @@ spring:
 
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: ${ALLOWED_ORIGINS_LIST}
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - Authorization
-              - Content-Type
-              - X-Requested-With
-              - X-User-Id
-              - X-User-Role
-            allowCredentials: true
+      
 eureka:
   client:
     enabled: false   # <<< DESATIVADO para produção no Render
