@@ -45,43 +45,46 @@ public class GatewayConfig {
                         .uri(userServiceUri))
 
                 .route("user-service-login", r -> r.path("/api/users/login").and().method(HttpMethod.POST)
-                        .filters(f -> f.modifyResponseBody(String.class, String.class, (exchange, body) -> {
-                            try {
-                                System.out.println("📩 [GATEWAY LOGIN] Resposta bruta do user-service: " + body);
-
-                                if (exchange.getResponse().getStatusCode() != null &&
-                                        exchange.getResponse().getStatusCode().is2xxSuccessful() &&
-                                        body != null) {
-
+                        .filters(f -> f
+                                // força resposta sem gzip para evitar problema de parse
+                                .setRequestHeader(HttpHeaders.ACCEPT_ENCODING, "identity")
+                                .modifyResponseBody(String.class, String.class, (exchange, body) -> {
                                     try {
-                                        Map<String, Object> bodyMap = objectMapper.readValue(body, Map.class);
-                                        String userId = String.valueOf(bodyMap.get("userId"));
-                                        String role = (String) bodyMap.get("role");
+                                        System.out.println("📩 [GATEWAY LOGIN] Resposta bruta do user-service: " + body);
 
-                                        if (userId != null && !userId.equals("null") && role != null) {
-                                            System.out.println("✅ [GATEWAY LOGIN] Sucesso! Criando cookies para userId=" + userId + ", role=" + role);
+                                        if (exchange.getResponse().getStatusCode() != null &&
+                                                exchange.getResponse().getStatusCode().is2xxSuccessful() &&
+                                                body != null) {
 
-                                            ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
-                                                    .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                            try {
+                                                Map<String, Object> bodyMap = objectMapper.readValue(body, Map.class);
+                                                String userId = String.valueOf(bodyMap.get("userId"));
+                                                String role = (String) bodyMap.get("role");
 
-                                            ResponseCookie roleCookie = ResponseCookie.from("role", role)
-                                                    .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                                if (userId != null && !userId.equals("null") && role != null) {
+                                                    System.out.println("✅ [GATEWAY LOGIN] Sucesso! Criando cookies para userId=" + userId + ", role=" + role);
 
-                                            exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
-                                            exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
-                                        } else {
-                                            System.err.println("⚠️ [GATEWAY LOGIN] userId ou role vieram nulos.");
+                                                    ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
+                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+
+                                                    ResponseCookie roleCookie = ResponseCookie.from("role", role)
+                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+
+                                                    exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
+                                                    exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
+                                                } else {
+                                                    System.err.println("⚠️ [GATEWAY LOGIN] userId ou role vieram nulos.");
+                                                }
+                                            } catch (Exception parseError) {
+                                                System.err.println("❌ [GATEWAY LOGIN] Falha ao parsear JSON. Corpo recebido: " + body);
+                                                System.err.println("Detalhe: " + parseError.getMessage());
+                                            }
                                         }
-                                    } catch (Exception parseError) {
-                                        System.err.println("❌ [GATEWAY LOGIN] Falha ao parsear JSON. Corpo recebido: " + body);
-                                        System.err.println("Detalhe: " + parseError.getMessage());
+                                    } catch (Exception e) {
+                                        System.err.println("❌ [GATEWAY LOGIN] Erro inesperado: " + e.getMessage());
                                     }
-                                }
-                            } catch (Exception e) {
-                                System.err.println("❌ [GATEWAY LOGIN] Erro inesperado: " + e.getMessage());
-                            }
-                            return Mono.just(body);
-                        }))
+                                    return Mono.just(body);
+                                }))
                         .uri(userServiceUri))
 
                 .route("user-service-secured", r -> r.path("/api/users/**")
