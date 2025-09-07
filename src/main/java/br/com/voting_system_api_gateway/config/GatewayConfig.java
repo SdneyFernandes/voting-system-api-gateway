@@ -34,9 +34,24 @@ public class GatewayConfig {
                 .route("user-service-logout", r -> r.path("/api/users/logout").and().method(HttpMethod.POST)
                         .filters(f -> f.filter((exchange, chain) -> {
                             System.out.println("✅ [GATEWAY LOGOUT] Limpando cookies do browser.");
-                            ResponseCookie userIdCookie = ResponseCookie.from("userId", "").httpOnly(false).secure(true).path("/").sameSite("None").maxAge(0).build();
-                            ResponseCookie roleCookie = ResponseCookie.from("role", "").httpOnly(false).secure(true).path("/").sameSite("None").maxAge(0).build();
+                            // ✅ CORREÇÃO APLICADA AQUI ✅
+ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
+    .httpOnly(false)
+    .secure(true)
+    .path("/")
+    .domain(".onrender.com") // <--- ADICIONE ESTA LINHA
+    .sameSite("None")
+    .maxAge(3600)
+    .build();
 
+ResponseCookie roleCookie = ResponseCookie.from("role", role)
+    .httpOnly(false)
+    .secure(true)
+    .path("/")
+    .domain(".onrender.com") // <--- E ADICIONE ESTA LINHA
+    .sameSite("None")
+    .maxAge(3600)
+    .build();
                             exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
                             exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
 
