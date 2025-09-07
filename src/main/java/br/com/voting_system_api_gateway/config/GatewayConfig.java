@@ -31,27 +31,30 @@ public class GatewayConfig {
                 .route("user-service-register", r -> r.path("/api/users/register")
                         .uri(userServiceUri))
 
+                // ✅ ROTA DE LOGOUT CORRIGIDA ✅
                 .route("user-service-logout", r -> r.path("/api/users/logout").and().method(HttpMethod.POST)
                         .filters(f -> f.filter((exchange, chain) -> {
                             System.out.println("✅ [GATEWAY LOGOUT] Limpando cookies do browser.");
-                            // ✅ CORREÇÃO APLICADA AQUI ✅
-ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
-    .httpOnly(false)
-    .secure(true)
-    .path("/")
-    .domain(".onrender.com") // <--- ADICIONE ESTA LINHA
-    .sameSite("None")
-    .maxAge(3600)
-    .build();
+                            
+                            // Para limpar um cookie, criamos um com valor vazio e tempo de vida zero.
+                            ResponseCookie userIdCookie = ResponseCookie.from("userId", "") // Valor vazio
+                                    .httpOnly(false)
+                                    .secure(true)
+                                    .path("/")
+                                    .domain(".onrender.com") // Domínio precisa ser o mesmo do login
+                                    .sameSite("None")
+                                    .maxAge(0) // Tempo de vida zero para expirar
+                                    .build();
 
-ResponseCookie roleCookie = ResponseCookie.from("role", role)
-    .httpOnly(false)
-    .secure(true)
-    .path("/")
-    .domain(".onrender.com") // <--- E ADICIONE ESTA LINHA
-    .sameSite("None")
-    .maxAge(3600)
-    .build();
+                            ResponseCookie roleCookie = ResponseCookie.from("role", "") // Valor vazio
+                                    .httpOnly(false)
+                                    .secure(true)
+                                    .path("/")
+                                    .domain(".onrender.com") // Domínio precisa ser o mesmo do login
+                                    .sameSite("None")
+                                    .maxAge(0) // Tempo de vida zero
+                                    .build();
+
                             exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
                             exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
 
@@ -59,18 +62,16 @@ ResponseCookie roleCookie = ResponseCookie.from("role", role)
                         }))
                         .uri(userServiceUri))
 
+                // ✅ ROTA DE LOGIN CORRIGIDA COM O DOMÍNIO ✅
                 .route("user-service-login", r -> r.path("/api/users/login").and().method(HttpMethod.POST)
                         .filters(f -> f
-                                // força resposta sem gzip para evitar problema de parse
                                 .setRequestHeader(HttpHeaders.ACCEPT_ENCODING, "identity")
                                 .modifyResponseBody(String.class, String.class, (exchange, body) -> {
                                     try {
                                         System.out.println("📩 [GATEWAY LOGIN] Resposta bruta do user-service: " + body);
-
                                         if (exchange.getResponse().getStatusCode() != null &&
                                                 exchange.getResponse().getStatusCode().is2xxSuccessful() &&
                                                 body != null) {
-
                                             try {
                                                 Map<String, Object> bodyMap = objectMapper.readValue(body, Map.class);
                                                 String userId = String.valueOf(bodyMap.get("userId"));
@@ -80,10 +81,22 @@ ResponseCookie roleCookie = ResponseCookie.from("role", role)
                                                     System.out.println("✅ [GATEWAY LOGIN] Sucesso! Criando cookies para userId=" + userId + ", role=" + role);
 
                                                     ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
-                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                                            .httpOnly(false)
+                                                            .secure(true)
+                                                            .path("/")
+                                                            .domain(".onrender.com") // <-- Atributo de domínio CORRIGIDO
+                                                            .sameSite("None")
+                                                            .maxAge(3600)
+                                                            .build();
 
                                                     ResponseCookie roleCookie = ResponseCookie.from("role", role)
-                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                                            .httpOnly(false)
+                                                            .secure(true)
+                                                            .path("/")
+                                                            .domain(".onrender.com") // <-- Atributo de domínio CORRIGIDO
+                                                            .sameSite("None")
+                                                            .maxAge(3600)
+                                                            .build();
 
                                                     exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
                                                     exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
@@ -111,6 +124,4 @@ ResponseCookie roleCookie = ResponseCookie.from("role", role)
                         .uri(voteServiceUri))
                 .build();
     }
-
-    
 }
