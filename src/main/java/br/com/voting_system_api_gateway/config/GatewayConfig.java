@@ -65,10 +65,10 @@ public class GatewayConfig {
                                                     System.out.println("✅ [GATEWAY LOGIN] Sucesso! Criando cookies para userId=" + userId + ", role=" + role);
 
                                                     ResponseCookie userIdCookie = ResponseCookie.from("userId", userId)
-                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                                            .httpOnly(false).secure(true).path("/").sameSite("Lax").domain(".meuvoto.giize.com").maxAge(3600).build();
 
                                                     ResponseCookie roleCookie = ResponseCookie.from("role", role)
-                                                            .httpOnly(false).secure(true).path("/").sameSite("None").maxAge(3600).build();
+                                                            .httpOnly(false).secure(true).path("/").sameSite("Lax").domain(".meuvoto.giize.com").maxAge(3600).build();
 
                                                     exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
                                                     exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, roleCookie.toString());
