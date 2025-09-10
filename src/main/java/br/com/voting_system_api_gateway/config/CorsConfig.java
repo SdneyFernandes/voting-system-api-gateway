@@ -12,7 +12,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    // Injeta a lista de origens da variável de ambiente que você já criou!
+    // Injeta a lista de origens da variável de ambiente!
     @Value("${ALLOWED_ORIGINS_LIST}")
     private List<String> allowedOrigins;
 
@@ -20,14 +20,12 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
-        // Usa a lista injetada
         corsConfig.setAllowedOrigins(allowedOrigins);
         
         corsConfig.setMaxAge(3600L);
-        corsConfig.addAllowedMethod("*"); // Permite todos os métodos (GET, POST, etc)
-        corsConfig.addAllowedHeader("*"); // Permite todos os cabeçalhos
+        corsConfig.addAllowedMethod("*"); 
+        corsConfig.addAllowedHeader("*"); 
         
-        // ESSENCIAL para autenticação baseada em cookies
         corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

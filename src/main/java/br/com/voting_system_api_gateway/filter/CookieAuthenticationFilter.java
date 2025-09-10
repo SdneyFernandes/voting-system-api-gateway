@@ -11,16 +11,14 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
-@Component // <-- MUDANÇA: Adicionado para que o Spring gerencie este filtro
+@Component
 public class CookieAuthenticationFilter implements GatewayFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        // A lógica de rotas públicas foi removida, pois o GatewayConfig já cuida disso.
-        // A única responsabilidade deste filtro agora é validar o cookie.
-
+        
         Optional<String> userId = getCookieValue(request, "userId");
         Optional<String> role = getCookieValue(request, "role");
 
@@ -35,7 +33,7 @@ public class CookieAuthenticationFilter implements GatewayFilter {
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
         }
 
-        // Se este filtro for ativado e não houver cookies, a requisição é bloqueada.
+        
         System.out.println("⛔ [GATEWAY FILTER] Cookies de autenticação ausentes. Bloqueando requisição 403 para " + request.getURI().getPath());
         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
         return exchange.getResponse().setComplete();
@@ -43,7 +41,6 @@ public class CookieAuthenticationFilter implements GatewayFilter {
 
     private Optional<String> getCookieValue(ServerHttpRequest request, String cookieName) {
         HttpCookie cookie = request.getCookies().getFirst(cookieName);
-        // Lógica simplificada e mais segura
-        return Optional.ofNullable(cookie).map(HttpCookie::getValue);
+                return Optional.ofNullable(cookie).map(HttpCookie::getValue);
     }
 }
